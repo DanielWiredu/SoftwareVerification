@@ -30,7 +30,7 @@ namespace OracleGeneratorTests.Utilities
                 }
                 else if (field.Type == "int")
                 {
-                    input[field.Name] = random.Next(18, 100);
+                    input[field.Name] = random.Next(1, 100);
                 }
                 else if (field.Type == "decimal")
                 {

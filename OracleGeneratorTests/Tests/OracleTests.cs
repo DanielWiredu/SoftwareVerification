@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Xunit;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.VisualStudio.TestPlatform.TestHost;
 
 namespace OracleGeneratorTests.Tests
@@ -86,29 +85,48 @@ namespace OracleGeneratorTests.Tests
         //    Assert.True(validOutput, $"Output oracle failed: {string.Join("; ", postFailures)}");
         //}
 
+        //[Theory]
+        //[InlineData("Specs/register_user.yaml")]
+        //[InlineData("Specs/transfer_funds.yaml")]
+        //public async Task OracleTest_AutoInputGenerated(string specPath)
+        //{
+        //    var spec = SpecLoader.LoadFromYaml(specPath);
+
+        //    for (int i = 0; i < 20; i++) // Run 20 randomized test cases
+        //    {
+        //        var input = TestInputGenerator.Generate(spec);
+
+        //        Console.WriteLine(input);
+
+        //        var preValid = PreconditionValidator.Validate(spec, input, out var preFailures);
+        //        Assert.True(preValid, $"Precondition failed (case {i + 1}): {string.Join("; ", preFailures)}");
+
+        //        var content = JsonContent.Create(input);
+        //        var response = await _client.PostAsync(spec.Endpoint, content);
+        //        var body = await response.Content.ReadAsStringAsync();
+
+        //        var validOutput = OutputOracle.Validate(spec, response, body, out var postFailures);
+        //        Assert.True(validOutput, $"Output oracle failed (case {i + 1}): {string.Join("; ", postFailures)}");
+        //    }
+        //}
+
+
+
         [Theory]
-        [InlineData("Specs/register_user.yaml")]
-        [InlineData("Specs/transfer_funds.yaml")]
-        public async Task OracleTest_AutoInputGenerated(string specPath)
+        [MemberData(nameof(SpecTestCaseData.GetTestCases), MemberType = typeof(SpecTestCaseData))]
+        public async Task OracleTest_IndividualCases(string specPath, Dictionary<string, object> input, int caseNumber)
         {
             var spec = SpecLoader.LoadFromYaml(specPath);
 
-            for (int i = 0; i < 5; i++) // Run 5 randomized test cases
-            {
-                var input = TestInputGenerator.Generate(spec);
+            var preValid = PreconditionValidator.Validate(spec, input, out var preFailures);
+            Assert.True(preValid, $"[Case {caseNumber}] Precondition failed: {string.Join("; ", preFailures)}");
 
-                Console.WriteLine(input);
+            var content = JsonContent.Create(input);
+            var response = await _client.PostAsync(spec.Endpoint, content);
+            var body = await response.Content.ReadAsStringAsync();
 
-                var preValid = PreconditionValidator.Validate(spec, input, out var preFailures);
-                Assert.True(preValid, $"Precondition failed (case {i + 1}): {string.Join("; ", preFailures)}");
-
-                var content = JsonContent.Create(input);
-                var response = await _client.PostAsync(spec.Endpoint, content);
-                var body = await response.Content.ReadAsStringAsync();
-
-                var validOutput = OutputOracle.Validate(spec, response, body, out var postFailures);
-                Assert.True(validOutput, $"Output oracle failed (case {i + 1}): {string.Join("; ", postFailures)}");
-            }
+            var validOutput = OutputOracle.Validate(spec, response, body, out var postFailures);
+            Assert.True(validOutput, $"[Case {caseNumber}] Output oracle failed: {string.Join("; ", postFailures)}");
         }
     }
 }
