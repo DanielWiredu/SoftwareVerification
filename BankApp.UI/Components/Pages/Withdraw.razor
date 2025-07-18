@@ -1,0 +1,79 @@
+﻿@page "/withdraw"
+@inject HttpClient Http
+@using System.ComponentModel.DataAnnotations
+
+<h3>Withdraw Funds</h3>
+
+@if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <div class="alert alert-success">@SuccessMessage</div>
+}
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+<EditForm Model="withdrawRequest" OnValidSubmit="HandleWithdraw">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Account Number:</label>
+        <InputText class="form-control" @bind-Value="withdrawRequest.AccountNumber" />
+    </div>
+
+    <div class="mb-3">
+        <label>Amount:</label>
+        <InputNumber class="form-control" @bind-Value="withdrawRequest.Amount" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Withdraw</button>
+</EditForm>
+
+@code {
+    private WithdrawRequest withdrawRequest = new();
+    private string SuccessMessage;
+    private string ErrorMessage;
+
+    public class WithdrawRequest
+    {
+        [Required]
+        public string AccountNumber { get; set; }
+
+        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0.")]
+        public decimal Amount { get; set; }
+    }
+
+    private async Task HandleWithdraw()
+    {
+        SuccessMessage = string.Empty;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("/api/accounts/withdraw", withdrawRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<WithdrawResponse>();
+                SuccessMessage = $"Successfully withdrew {result.Amount:C} from account {result.AccountNumber}.";
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                ErrorMessage = $"Error: {error}";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Unexpected error: {ex.Message}";
+        }
+    }
+
+    public class WithdrawResponse
+    {
+        public string AccountNumber { get; set; }
+        public decimal Amount { get; set; }
+        public string Message { get; set; }
+    }
+}

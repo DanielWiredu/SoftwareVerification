@@ -1,24 +1,27 @@
+using AppModels.Account;
+using AppModels.Common;
 using BusinessLogic.Repository;
 using BusinessLogic.Repository.IRepository;
 using DataAccess.Data;
 using DataAccess.DbAccess;
-using SoftwareVerification_API.Service.IService;
-using SoftwareVerification_API.Service;
+using Hangfire;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
-using SoftwareVerification_API.Helper;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Serialization;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json.Serialization;
 using Serilog;
-using Hangfire;
-using AppModels.Common;
-using AppModels.Account;
-using Microsoft.AspNetCore.Authorization;
+using SoftwareVerification_API.Data;
+using SoftwareVerification_API.Helper;
+using SoftwareVerification_API.Models;
+using SoftwareVerification_API.Service;
+using SoftwareVerification_API.Service.IService;
+using System.Text;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -62,85 +65,16 @@ builder.Host.UseSerilog((context, services, configuration) =>
 );
 
 //my services
-//builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
-builder.Services.AddDbContext<XcelAppDbContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("XcelDbConnection")));
-builder.Services.AddTransient<ISqlDataAccess, SqlDataAccess>();
-// custom identity
-//builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-//    .AddEntityFrameworkStores<ApplicationDbContext>()
-//    .AddDefaultTokenProviders();
-builder.Services.AddIdentity<XcelAppUser, IdentityRole>(options =>
-{
-    options.SignIn.RequireConfirmedAccount = false;
-    options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 6;
-    options.Password.RequiredUniqueChars = 1;
-})
-    .AddEntityFrameworkStores<XcelAppDbContext>()
-    .AddDefaultTokenProviders();
+//builder.Services.AddDbContext<BankDbContext>(options => options.UseSqlite("DataSource=:memory:")); // In-memory SQLite
 
+// Create and open a shared in-memory SQLite connection
+var keepAliveConnection = new SqliteConnection("DataSource=:memory:");
+keepAliveConnection.Open();
 
-var appSettingsSection = builder.Configuration.GetSection("APISettings");
-builder.Services.Configure<APISettings>(appSettingsSection);
+// Register DbContext with this connection
+builder.Services.AddDbContext<BankDbContext>(options =>
+    options.UseSqlite(keepAliveConnection));
 
-var apiSettings = appSettingsSection.Get<APISettings>();
-var key = Encoding.ASCII.GetBytes(apiSettings.SecretKey);
-builder.Services.AddAuthentication(opt =>
-{
-    opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    opt.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-                .AddJwtBearer(x =>
-                {
-                    x.RequireHttpsMetadata = false;
-                    x.SaveToken = true;
-                    x.TokenValidationParameters = new TokenValidationParameters()
-                    {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(key),
-                        ValidateAudience = true,
-                        ValidateIssuer = true,
-                        ValidAudience = apiSettings.ValidAudience.FirstOrDefault()!.ToString(),
-                        ValidIssuer = apiSettings.ValidIssuer,
-                        ClockSkew = TimeSpan.Zero
-                    };
-                });
-
-
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-//builder.Services.AddScoped<IDbInitializer, DbInitializer>();
-builder.Services.AddScoped<IOtpService, OtpService>();
-builder.Services.AddTransient<IEmailService, EmailServiceMailKit>();
-builder.Services.AddTransient<ISMSService, SMSService>();
-
-//builder.Services.AddScoped<IUnitOfWorkEF, UnitOfWorkEF>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-builder.Services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
-builder.Services.AddAuthorization(options =>
-{
-    //options.AddPolicy(Permissions.AddUser, policy => policy.Requirements.Add(new PermissionRequirement(Permissions.AddUser)));
-    foreach (var permission in Permissions.All)
-    {
-        options.AddPolicy(permission, policy => policy.Requirements.Add(new PermissionRequirement(permission)));
-    }
-});
-
-
-builder.Services.AddHangfire(x =>
-    x.UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UseSqlServerStorage(builder.Configuration.GetConnectionString("HangFire"))
-);
-builder.Services.AddHangfireServer(x =>
-{
-    x.SchedulePollingInterval = TimeSpan.FromSeconds(60);
-    x.Queues = new[] { SD.HangFireQueueName };
-});
 
 builder.Services.AddCors(o => o.AddPolicy("SoftwareVerification", builder =>
 {
@@ -159,6 +93,27 @@ builder.Services.AddControllers().AddJsonOptions(opt => opt.JsonSerializerOption
 
 var app = builder.Build();
 //app.Services.CreateScope().ServiceProvider.GetService<IDbInitializer>().Initialize();
+// Open and seed the in-memory SQLite
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<BankDbContext>();
+    //db.Database.OpenConnection();  // keep connection open
+    //db.Database.EnsureCreated();
+    var providerName = db.Database.ProviderName;
+    if (providerName != "Microsoft.EntityFrameworkCore.InMemory")
+    {
+        // Relational-only logic
+        var connection = db.Database.GetDbConnection();
+        connection.Open();
+        db.Database.EnsureCreated(); // or db.Database.Migrate();
+    }
+
+    db.Accounts.AddRange(
+        new Account { AccountNumber = "A001", Balance = 500 },
+        new Account { AccountNumber = "B002", Balance = 1000 }
+    );
+    db.SaveChanges();
+}
 
 //app.UseMiddleware<SwaggerBasicAuthMiddleware>();
 
@@ -181,13 +136,6 @@ app.UseAuthorization();
 
 // Use Serilog request logging to capture HTTP details
 app.UseSerilogRequestLogging(); // This will automatically log HTTP request details
-
-//app.UseMiddleware<BasicAuthMiddleware>(); //authentication for hangfire dashboard
-app.UseHangfireDashboard("/hangfire", new DashboardOptions
-{
-    Authorization = [new HangfireBasicAuthFilter(builder.Configuration.GetSection("HangfireLogin"))],
-    DarkModeEnabled = true
-});
 
 app.MapControllers();
 

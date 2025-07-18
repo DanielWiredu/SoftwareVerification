@@ -1,0 +1,61 @@
+﻿@page "/close-account"
+@inject HttpClient Http
+
+<h3 class="text-xl font-semibold mb-4">Close Account</h3>
+
+<EditForm Model="CloseRequest" OnValidSubmit="CloseBankAccount">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-4">
+        <label class="block mb-1">Account Number:</label>
+        <InputText @bind-Value="CloseRequest.AccountNumber" class="border p-2 rounded w-64" />
+    </div>
+
+    <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded">Close Account</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <div class="mt-4 text-lg font-medium @(IsSuccess ? "text-green-600" : "text-red-600")">
+        @Message
+    </div>
+}
+
+@code {
+    private CloseAccountRequest CloseRequest = new();
+    private string Message;
+    private bool IsSuccess;
+
+    private async Task CloseBankAccount()
+    {
+        Message = string.Empty;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("/api/accounts/close", CloseRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Message = "Account closed successfully.";
+                IsSuccess = true;
+                CloseRequest = new(); // reset form
+            }
+            else
+            {
+                Message = await response.Content.ReadAsStringAsync();
+                IsSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Message = $"Error: {ex.Message}";
+            IsSuccess = false;
+        }
+    }
+
+    public class CloseAccountRequest
+    {
+        public string AccountNumber { get; set; }
+    }
+}

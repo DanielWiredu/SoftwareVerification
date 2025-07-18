@@ -1,0 +1,90 @@
+﻿@page "/transfer"
+@inject HttpClient Http
+@using System.ComponentModel.DataAnnotations
+
+<h3>Transfer Funds</h3>
+
+@if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <div class="alert alert-success">@SuccessMessage</div>
+}
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+<EditForm Model="transferRequest" OnValidSubmit="HandleTransfer">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>From Account:</label>
+        <InputText class="form-control" @bind-Value="transferRequest.FromAccount" />
+    </div>
+
+    <div class="mb-3">
+        <label>To Account:</label>
+        <InputText class="form-control" @bind-Value="transferRequest.ToAccount" />
+    </div>
+
+    <div class="mb-3">
+        <label>Amount:</label>
+        <InputNumber class="form-control" @bind-Value="transferRequest.Amount" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Transfer</button>
+</EditForm>
+
+@code {
+    private TransferRequest transferRequest = new();
+    private string SuccessMessage;
+    private string ErrorMessage;
+
+    public class TransferRequest
+    {
+        [Required]
+        [Display(Name = "From Account")]
+        public string FromAccount { get; set; }
+
+        [Required]
+        [Display(Name = "To Account")]
+        public string ToAccount { get; set; }
+
+        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0.")]
+        public double Amount { get; set; }
+    }
+
+    public class TransferResponse
+    {
+        public string Message { get; set; }
+        public string From_Account { get; set; }
+        public string To_Account { get; set; }
+        public double Amount { get; set; }
+    }
+
+    private async Task HandleTransfer()
+    {
+        SuccessMessage = string.Empty;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("/api/accounts/transfer", transferRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<TransferResponse>();
+                SuccessMessage = result?.Message ?? "Transfer completed successfully.";
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                ErrorMessage = $"Error: {error}";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Unexpected error: {ex.Message}";
+        }
+    }
+}

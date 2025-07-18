@@ -1,0 +1,92 @@
+﻿@page "/allaccounts"
+@inject HttpClient Http
+
+<h1 class="text-2xl font-bold mb-4">All Accounts</h1>
+
+@if (accounts == null)
+{
+    <p>Loading...</p>
+}
+else if (!accounts.Any())
+{
+    <p>No accounts found.</p>
+}
+else
+{
+    <table class="table-auto w-full border">
+        <thead>
+            <tr class="bg-gray-200">
+                <th class="px-4 py-2 border">Account Number</th>
+                <th class="px-4 py-2 border">Owner Name</th>
+                <th class="px-4 py-2 border">Balance</th>
+                <th class="px-4 py-2 border">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var account in accounts)
+            {
+                <tr>
+                    <td class="px-4 py-2 border">@account.AccountNumber</td>
+                    <td class="px-4 py-2 border">@account.OwnerName</td>
+                    <td class="px-4 py-2 border">@account.Balance.ToString("C")</td>
+                    <td class="px-4 py-2 border">@(account.IsClosed ? "Closed" : "Active")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@* <PageTitle>Weather</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Weather forecast</MudText>
+<MudText Typo="Typo.body1" Class="mb-8">This component demonstrates fetching data from the server.</MudText>
+
+@if (accounts == null)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+    <MudTable Items="accounts" Hover="true" SortLabel="Sort By" Elevation="0" AllowUnsorted="false">
+        <HeaderContent>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<WeatherForecast, object>(x => x.Date)">Date</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<AccountDto, object>(x => x.TemperatureC)">Temp. (C)</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<AccountDto, object>(x => x.TemperatureF)">Temp. (F)</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<AccountDto, object>(x => x.Summary!)">Summary</MudTableSortLabel></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Date">@context.Date</MudTd>
+            <MudTd DataLabel="Temp. (C)">@context.TemperatureC</MudTd>
+            <MudTd DataLabel="Temp. (F)">@context.TemperatureF</MudTd>
+            <MudTd DataLabel="Summary">@context.Summary</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[] { 50, 100 }" />
+        </PagerContent>
+    </MudTable>
+} *@
+
+@code {
+    private List<AccountDto>? accounts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            accounts = await Http.GetFromJsonAsync<List<AccountDto>>("/api/accounts/getall");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Failed to load accounts: {ex.Message}");
+            accounts = new(); // Prevents null issues in rendering
+        }
+    }
+
+    public class AccountDto
+    {
+        public string AccountNumber { get; set; } = string.Empty;
+        public string OwnerName { get; set; } = string.Empty;
+        public double Balance { get; set; }
+        public bool IsClosed { get; set; }
+    }
+}

@@ -1,0 +1,61 @@
+﻿@page "/check-balance"
+@inject HttpClient Http
+
+<h3 class="text-xl font-semibold mb-4">Check Account Balance</h3>
+
+<div class="mb-4">
+    <input @bind="AccountNumber" placeholder="Enter Account Number"
+           class="border p-2 rounded w-64" />
+    <button @onclick="CheckAccountBalance" class="ml-2 bg-blue-500 text-white px-4 py-2 rounded">Check</button>
+</div>
+
+@if (ErrorMessage != null)
+{
+    <div class="text-red-500">@ErrorMessage</div>
+}
+else if (Balance != null)
+{
+    <div class="text-green-600 text-lg font-medium">Balance: $@Balance</div>
+}
+
+@code {
+    private string AccountNumber;
+    private double? Balance;
+    private string ErrorMessage;
+
+    private async Task CheckAccountBalance()
+    {
+        ErrorMessage = null;
+        Balance = null;
+
+        if (string.IsNullOrWhiteSpace(AccountNumber))
+        {
+            ErrorMessage = "Please enter a valid account number.";
+            return;
+        }
+
+        try
+        {
+            var response = await Http.GetAsync($"/api/accounts/balance/{AccountNumber}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<BalanceResponse>();
+                Balance = result?.Balance;
+            }
+            else
+            {
+                ErrorMessage = await response.Content.ReadAsStringAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+
+    private class BalanceResponse
+    {
+        public double Balance { get; set; }
+    }
+}

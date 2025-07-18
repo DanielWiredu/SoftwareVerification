@@ -1,0 +1,73 @@
+﻿@page "/open-account"
+@inject HttpClient Http
+
+<h3 class="text-xl font-semibold mb-4">Open New Account</h3>
+
+<EditForm Model="NewAccount" OnValidSubmit="OpenNewAccount">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-4">
+        <label class="block mb-1">Account Number:</label>
+        <InputText @bind-Value="NewAccount.AccountNumber" class="border p-2 rounded w-64" />
+    </div>
+
+    <div class="mb-4">
+        <label class="block mb-1">Owner Name:</label>
+        <InputText @bind-Value="NewAccount.OwnerName" class="border p-2 rounded w-64" />
+    </div>
+
+    <div class="mb-4">
+        <label class="block mb-1">Initial Balance:</label>
+        <InputNumber @bind-Value="NewAccount.InitialBalance" class="border p-2 rounded w-64" />
+    </div>
+
+    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Open Account</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <div class="mt-4 text-lg font-medium @(IsSuccess ? "text-green-600" : "text-red-600")">
+        @Message
+    </div>
+}
+
+@code {
+    private AccountRequest NewAccount = new();
+    private string Message;
+    private bool IsSuccess;
+
+    private async Task OpenNewAccount()
+    {
+        Message = string.Empty;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("/api/accounts/open", NewAccount);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Message = "Account opened successfully.";
+                IsSuccess = true;
+                NewAccount = new(); // reset form
+            }
+            else
+            {
+                Message = await response.Content.ReadAsStringAsync();
+                IsSuccess = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Message = $"Error: {ex.Message}";
+            IsSuccess = false;
+        }
+    }
+
+    public class AccountRequest
+    {
+        public string AccountNumber { get; set; }
+        public string OwnerName { get; set; }
+        public double InitialBalance { get; set; }
+    }
+}

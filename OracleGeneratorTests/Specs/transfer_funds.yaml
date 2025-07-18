@@ -18,12 +18,18 @@ preconditions:
     message: "Transfer amount must be greater than zero."
   - condition: from_account != to_account
     message: "Accounts must be different."
+  - condition: from_account and to_account exist
+    message: "One or both accounts not found."
+  - condition: from_account and to_account are not closed
+    message: "One or both accounts are closed."
+  - condition: from_account has sufficient balance
+    message: "Insufficient funds."
 
 postconditions:
-  - condition: transaction record created
-    message: "A transfer transaction should be logged."
+  - condition: two transaction records are created
+    message: "Two transfer transactions should be logged."
 
 expected_output:
   status_code: 200
   message: "Transfer completed successfully"
-  data_keys: [transactionId, from_account, to_account, amount]
+  data_keys: [from_account, to_account, amount]
