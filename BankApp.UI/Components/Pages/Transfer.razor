@@ -18,15 +18,15 @@
     <ValidationSummary />
 
     <div class="mb-3">
-        <MudTextField @bind-Value="transferRequest.FromAccount" Label="From Account:" Variant="Variant.Outlined"></MudTextField>
+        <MudTextField @bind-Value="transferRequest.from_account" Label="From Account:" Variant="Variant.Outlined"></MudTextField>
     </div>
 
     <div class="mb-3">
-        <MudTextField @bind-Value="transferRequest.ToAccount" Label="To Account:" Variant="Variant.Outlined"></MudTextField>
+        <MudTextField @bind-Value="transferRequest.to_account" Label="To Account:" Variant="Variant.Outlined"></MudTextField>
     </div>
 
     <div class="mb-3">
-        <MudTextField @bind-Value="transferRequest.Amount" Format="F2" Label="Amount:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" AdornmentColor="Color.Warning" />
+        <MudTextField @bind-Value="transferRequest.amount" Format="F2" Label="Amount:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" AdornmentColor="Color.Warning" />
     </div>
 
     <MudButton Variant="Variant.Filled" Color="Color.Success" @onclick=HandleTransfer>Transfer</MudButton>
@@ -41,14 +41,14 @@
     {
         [Required]
         [Display(Name = "From Account")]
-        public string FromAccount { get; set; }
+        public string from_account { get; set; }
 
         [Required]
         [Display(Name = "To Account")]
-        public string ToAccount { get; set; }
+        public string to_account { get; set; }
 
         [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0.")]
-        public double Amount { get; set; }
+        public double amount { get; set; }
     }
 
     public class TransferResponse
