@@ -44,36 +44,6 @@ else if (transactions != null)
     <div class="mt-3">No transactions found for this account.</div>
 }
 
-
-@* @if (transactions != null && transactions.Any())
-{
-    <table class="table table-bordered mt-3">
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var txn in transactions)
-            {
-                <tr>
-                    <td>@txn.Timestamp.ToString("g")</td>
-                    <td>@txn.Type</td>
-                    <td>@txn.Amount</td>
-                    <td>@txn.Description</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
-else if (transactions != null)
-{
-    <div class="mt-3">No transactions found for this account.</div>
-} *@
-
 @code {
     private SearchModel searchModel = new();
     private List<TransactionDto> transactions;

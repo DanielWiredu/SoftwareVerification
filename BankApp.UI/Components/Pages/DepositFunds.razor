@@ -8,26 +8,18 @@
     <ValidationSummary />
 
     <div class="mb-4">
-        @* <label class="block mb-1">Account Number:</label>
-        <InputText @bind-Value="request.AccountNumber" class="border p-2 rounded w-64" /> *@
         <MudTextField @bind-Value="request.AccountNumber" Label="Account Number:" Variant="Variant.Outlined"></MudTextField>
     </div>
 
     <div class="mb-4">
-        @* <label class="block mb-1">Amount:</label>
-        <InputNumber @bind-Value="request.Amount" class="border p-2 rounded w-64" /> *@
         <MudTextField @bind-Value="request.Amount" Format="F2" Label="Amount:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" AdornmentColor="Color.Warning" />
     </div>
 
-    @* <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Deposit</button> *@
     <MudButton Variant="Variant.Filled" Color="Color.Success" @onclick=Deposit>Deposit</MudButton>
 </EditForm>
 
 @if (!string.IsNullOrEmpty(Message))
 {
-    @* <div class="mt-4 text-lg font-medium @(IsSuccess ? "text-green-600" : "text-red-600")">
-        @Message
-    </div> *@
     @if (IsSuccess)
     {
         <MudAlert Severity="Severity.Success" Variant="Variant.Text">@Message</MudAlert>

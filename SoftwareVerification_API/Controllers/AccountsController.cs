@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SoftwareVerification_API.Data;
 using SoftwareVerification_API.Models;
+using System.Security.Principal;
 
 namespace SoftwareVerification_API.Controllers
 {
@@ -37,6 +38,9 @@ namespace SoftwareVerification_API.Controllers
         {
             try
             {
+                if (newAccount.Balance < 0)
+                    return BadRequest("Initial Balance must be greater than zero.");
+
                 // Generate AccountNumber
                 var totalAccounts = await _db.Accounts.CountAsync();
                 var nextId = totalAccounts + 1;
@@ -77,14 +81,47 @@ namespace SoftwareVerification_API.Controllers
             return Ok($"Account {account.AccountNumber} has been closed.");
         }
 
+        //[HttpPost("deposit")]
+        //public async Task<IActionResult> Deposit([FromBody] DepositRequest request)
+        //{
+        //    if (request.Amount <= 0)
+        //        return BadRequest("Deposit amount must be greater than zero.");
+
+        //    var account = await _db.Accounts.FirstOrDefaultAsync(a => a.AccountNumber == request.AccountNumber);
+
+        //    if (account == null)
+        //        return NotFound("Account not found.");
+
+        //    if (account.IsClosed)
+        //        return BadRequest("Cannot deposit to a closed account.");
+
+        //    account.Balance += request.Amount; 
+
+        //    // Log transaction 
+        //    _db.Transactions?.Add(new Transaction
+        //    {
+        //        AccountNumber = request.AccountNumber,
+        //        Amount = request.Amount,
+        //        Type = "Deposit",
+        //        Timestamp = DateTime.UtcNow
+        //    });
+
+        //    await _db.SaveChangesAsync();
+
+        //    return Ok(new
+        //    {
+        //        Message = $"Successfully deposited {request.Amount:C} to {account.AccountNumber}.",
+        //        NewBalance = account.Balance
+        //    });
+        //}
+
         [HttpPost("deposit")]
         public async Task<IActionResult> Deposit([FromBody] DepositRequest request)
         {
             if (request.Amount <= 0)
                 return BadRequest("Deposit amount must be greater than zero.");
 
-            var account = await _db.Accounts
-                .FirstOrDefaultAsync(a => a.AccountNumber == request.AccountNumber);
+            var account = await _db.Accounts.AsNoTracking().FirstOrDefaultAsync(a => a.AccountNumber == request.AccountNumber);
 
             if (account == null)
                 return NotFound("Account not found.");
@@ -92,9 +129,13 @@ namespace SoftwareVerification_API.Controllers
             if (account.IsClosed)
                 return BadRequest("Cannot deposit to a closed account.");
 
-            account.Balance += request.Amount;
+            // Atomic update
+            var rowsAffected = await _db.Database.ExecuteSqlInterpolatedAsync($@"
+            UPDATE Accounts
+            SET Balance = Balance + {request.Amount}
+            WHERE AccountNumber = {request.AccountNumber}");
 
-            // Log transaction (optional — if we implement transaction history)
+            // Log the transaction (if needed)
             _db.Transactions?.Add(new Transaction
             {
                 AccountNumber = request.AccountNumber,
@@ -105,12 +146,16 @@ namespace SoftwareVerification_API.Controllers
 
             await _db.SaveChangesAsync();
 
+            // Retrieve updated balance for response
+            var updated = await _db.Accounts.AsNoTracking().FirstOrDefaultAsync(a => a.AccountNumber == request.AccountNumber);
+
             return Ok(new
             {
                 Message = $"Successfully deposited {request.Amount:C} to {account.AccountNumber}.",
-                NewBalance = account.Balance
+                NewBalance = updated.Balance
             });
         }
+
 
         [HttpPost("withdraw")]
         public async Task<IActionResult> Withdraw([FromBody] WithdrawRequest request)
@@ -262,6 +307,7 @@ namespace SoftwareVerification_API.Controllers
                 .OrderByDescending(t => t.Timestamp)
                 .Select(t => new
                 {
+                    t.AccountNumber,
                     t.Type,
                     t.Amount,
                     t.Timestamp,

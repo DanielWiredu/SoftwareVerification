@@ -19,16 +19,11 @@
         <MudTextField @bind-Value="NewAccount.Balance" Format="F2" Label="Initial Balance:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" AdornmentColor="Color.Warning" />
     </div>
 
-    @* <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Open Account</button> *@
     <MudButton Variant="Variant.Filled" Color="Color.Success" @onclick=OpenNewAccount>Create Account</MudButton>
 </EditForm>
 
 @if (!string.IsNullOrEmpty(Message))
 {
-  @*   <div class="mt-4 text-lg font-medium @(IsSuccess ? "text-green-600" : "text-red-600")">
-        @Message
-    </div> *@
-
     @if (IsSuccess)
     {
         <MudAlert Severity="Severity.Success" Variant="Variant.Text">@Message</MudAlert>

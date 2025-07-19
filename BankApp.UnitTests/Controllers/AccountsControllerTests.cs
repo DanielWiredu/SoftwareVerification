@@ -1,14 +1,16 @@
-﻿using Microsoft.VisualStudio.TestPlatform.TestHost;
-using System;
-using System.Collections.Generic;
-using System.Net.Http.Json;
-using SoftwareVerification_API.Data;
-using SoftwareVerification_API.Models;
+﻿using BankApp.UnitTests.TestHelpers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.TestPlatform.TestHost;
+using Org.BouncyCastle.Asn1.Ocsp;
+using SoftwareVerification_API.Data;
+using SoftwareVerification_API.Models;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http.Json;
 using Xunit;
-using BankApp.UnitTests.TestHelpers;
 
 namespace BankApp.UnitTests.Controllers
 {
@@ -182,5 +184,291 @@ namespace BankApp.UnitTests.Controllers
         {
             _scope.Dispose();
         }
+
+
+
+
+        // The current test suite already covers most core account operations.
+        // To further improve test coverage and ensure robustness, we add the following types of unit and integration tests
+
+        // 1. Negative and Edge Case Testing
+        //Invalid Withdraw (e.g., insufficient funds)
+        [Fact]
+        public async Task Withdraw_WithInsufficientFunds_ShouldFail()
+        {
+            var account = new Account { AccountNumber = "X008", Balance = 50 };
+            _db.Accounts.Add(account);
+            await _db.SaveChangesAsync();
+
+            var response = await _client.PostAsJsonAsync("/api/accounts/withdraw", new { AccountNumber = "X008", Amount = 100 });
+
+            Assert.False(response.IsSuccessStatusCode);
+        }
+        //Invalid Transfer (e.g., non-existent target account)
+        [Fact]
+        public async Task TransferFunds_ToNonExistentAccount_ShouldFail()
+        {
+            var from = new Account { AccountNumber = "X009", Balance = 500 };
+            _db.Accounts.Add(from);
+            await _db.SaveChangesAsync();
+
+            var response = await _client.PostAsJsonAsync("/api/accounts/transfer", new
+            {
+                from_account = "X009",
+                to_account = "INVALID",
+                amount = 100
+            });
+
+            Assert.False(response.IsSuccessStatusCode);
+        }
+
+        //  2. Validation & Error Messages
+        //Check for the presence of error details in failed responses:
+        [Fact]
+        public async Task OpenAccount_WithNegativeBalance_ShouldReturnBadRequest()
+        {
+            var response = await _client.PostAsJsonAsync("/api/accounts/open", new { Balance = -100 });
+            Assert.False(response.IsSuccessStatusCode);
+
+            var error = await response.Content.ReadAsStringAsync();
+            Assert.Contains("Balance", error, StringComparison.OrdinalIgnoreCase);
+        }
+
+
+        //3. Closed Account Behavior
+        ///Once an account is closed, make sure operations like deposit/withdraw fail:
+        [Fact]
+        public async Task Deposit_ToClosedAccount_ShouldFail()
+        {
+            var account = new Account { AccountNumber = "X010", Balance = 200, IsClosed = true };
+            _db.Accounts.Add(account);
+            await _db.SaveChangesAsync();
+
+            var response = await _client.PostAsJsonAsync("/api/accounts/deposit", new { AccountNumber = "X010", Amount = 50 });
+            Assert.False(response.IsSuccessStatusCode);
+        }
+
+        //4. Boundary Values
+        //Test minimal and maximal values, e.g., 0, very large amounts, etc.
+        [Fact]
+        public async Task Deposit_ZeroAmount_ShouldFail()
+        {
+            var account = new Account { AccountNumber = "X011", Balance = 300 };
+            _db.Accounts.Add(account);
+            await _db.SaveChangesAsync();
+
+            var response = await _client.PostAsJsonAsync("/api/accounts/deposit", new { AccountNumber = "X011", Amount = 0 });
+            Assert.False(response.IsSuccessStatusCode);
+        }
+
+        //5. Idempotency & Consistency
+        //Repeat a successful operation and verify that repeated calls don't cause side effects (when they shouldn’t).
+        [Fact]
+        public async Task CloseAccount_Twice_ShouldReturnConsistentState()
+        {
+            var account = new Account { AccountNumber = "X012", Balance = 150 };
+            _db.Accounts.Add(account);
+            await _db.SaveChangesAsync();
+
+            var first = await _client.PostAsync($"/api/accounts/close?accountNumber={account.AccountNumber}", null);
+            var second = await _client.PostAsync($"/api/accounts/close?accountNumber={account.AccountNumber}", null);
+
+            using var refreshScope = _scope.ServiceProvider.CreateScope();
+            var refreshedDb = refreshScope.ServiceProvider.GetRequiredService<BankDbContext>();
+            var closedAccount = await refreshedDb.Accounts.FirstOrDefaultAsync(a => a.AccountNumber == "X012");
+
+            Assert.True(closedAccount.IsClosed);
+            Assert.True(first.IsSuccessStatusCode || second.IsSuccessStatusCode);
+        }
+
+        // 6. Transaction History – Empty Case
+        // Test that an account with no transactions returns an empty list.
+        [Fact]
+        public async Task TransactionHistory_WithNoTransactions_ShouldReturnEmpty()
+        {
+            var account = new Account { AccountNumber = "X013", Balance = 50 };
+            _db.Accounts.Add(account);
+            await _db.SaveChangesAsync();
+
+            var response = await _client.GetAsync("/api/accounts/transactions/X013");
+            response.EnsureSuccessStatusCode();
+
+            var txns = await response.Content.ReadFromJsonAsync<List<Transaction>>();
+            Assert.Empty(txns);
+        }
+
+
+        [Fact]
+        public async Task Withdraw_MoreThanBalance_ShouldFail()
+        {
+            var acc = new Account { AccountNumber = "X100", Balance = 100 };
+            _db.Accounts.Add(acc);
+            await _db.SaveChangesAsync();
+
+            var response = await _client.PostAsJsonAsync("/api/accounts/withdraw", new
+            {
+                AccountNumber = "X100",
+                Amount = 150
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task Deposit_NegativeAmount_ShouldFail()
+        {
+            var acc = new Account { AccountNumber = "X101", Balance = 200 };
+            _db.Accounts.Add(acc);
+            await _db.SaveChangesAsync();
+
+            var response = await _client.PostAsJsonAsync("/api/accounts/deposit", new
+            {
+                AccountNumber = "X101",
+                Amount = -50
+            });
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task ConcurrentDeposits_ShouldMaintainConsistency()
+        {
+            var acc = new Account { AccountNumber = "X102", Balance = 0 };
+            _db.Accounts.Add(acc);
+            await _db.SaveChangesAsync();
+
+            var tasks = Enumerable.Range(0, 10).Select(_ => _client.PostAsJsonAsync("/api/accounts/deposit", new
+            {
+                AccountNumber = "X102",
+                Amount = 10
+            })).ToArray();
+
+            await Task.WhenAll(tasks);
+
+            using var refreshScope = _scope.ServiceProvider.CreateScope();
+            var refreshedDb = refreshScope.ServiceProvider.GetRequiredService<BankDbContext>();
+            var updated = await refreshedDb.Accounts.FirstOrDefaultAsync(a => a.AccountNumber == "X102");
+            Assert.Equal(100, updated.Balance);
+        }
+
+        [Fact]
+        public async Task Transfer_FromNonExistentAccount_ShouldFail()
+        {
+            var response = await _client.PostAsJsonAsync("/api/accounts/transfer", new
+            {
+                from_account = "INVALID",
+                to_account = "X103",
+                amount = 50
+            });
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task OpenAndLogTransaction_ShouldSucceed()
+        {
+            var response = await _client.PostAsJsonAsync("/api/accounts/open", new { Balance = 300 });
+            response.EnsureSuccessStatusCode();
+            var created = await response.Content.ReadFromJsonAsync<Account>();
+
+            var deposit = await _client.PostAsJsonAsync("/api/accounts/deposit", new { AccountNumber = created!.AccountNumber, Amount = 100 });
+            deposit.EnsureSuccessStatusCode();
+
+            var txns = await _client.GetFromJsonAsync<List<Transaction>>($"/api/accounts/transactions/{created.AccountNumber}");
+            Assert.NotEmpty(txns);
+        }
+
+        [Fact]
+        public async Task Transaction_ShouldBeAtomicOnFailure()
+        {
+            var from = new Account { AccountNumber = "X104", Balance = 100 };
+            _db.Accounts.Add(from);
+            await _db.SaveChangesAsync();
+
+            var response = await _client.PostAsJsonAsync("/api/accounts/transfer", new
+            {
+                from_account = "X104",
+                to_account = "X_NON_EXISTENT",
+                amount = 50
+            });
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+            using var refreshScope = _scope.ServiceProvider.CreateScope();
+            var refreshedDb = refreshScope.ServiceProvider.GetRequiredService<BankDbContext>();
+            var check = await refreshedDb.Accounts.FirstOrDefaultAsync(a => a.AccountNumber == "X104");
+            Assert.Equal(100, check.Balance);
+        }
+
+        [Fact]
+        public async Task Transfer_ShouldLogTransaction_BothSides()
+        {
+            var from = new Account { AccountNumber = "X105", Balance = 500 };
+            var to = new Account { AccountNumber = "X106", Balance = 100 };
+            _db.Accounts.AddRange(from, to);
+            await _db.SaveChangesAsync();
+
+            var result = await _client.PostAsJsonAsync("/api/accounts/transfer", new
+            {
+                from_account = "X105",
+                to_account = "X106",
+                amount = 150
+            });
+            result.EnsureSuccessStatusCode();
+
+            var txnsFrom = await _client.GetFromJsonAsync<List<Transaction>>("/api/accounts/transactions/X105");
+            var txnsTo = await _client.GetFromJsonAsync<List<Transaction>>("/api/accounts/transactions/X106");
+
+            //using var refreshScope = _scope.ServiceProvider.CreateScope();
+            //var refreshedDb = refreshScope.ServiceProvider.GetRequiredService<BankDbContext>();
+
+            //var txnsFrom = refreshedDb.Transactions.Where(t => t.AccountNumber == from.AccountNumber);
+            //var txnsTo = refreshedDb.Transactions.Where(t => t.AccountNumber == to.AccountNumber);
+
+            Assert.Contains(txnsFrom!, t => t.Type == "Transfer Out");
+            Assert.Contains(txnsTo!, t => t.Type == "Transfer In");
+        }
+
+        [Fact]
+        public async Task APIContract_ShouldReturnExpectedStructure()
+        {
+            var transaction = new Transaction
+            {
+                AccountNumber = "A001",
+                Amount = 500,
+                Type = "Deposit",
+                Timestamp = DateTime.UtcNow
+            };
+            _db.Transactions.Add(transaction);
+            await _db.SaveChangesAsync();
+
+            var response = await _client.GetAsync("/api/accounts/transactions/A001");
+            response.EnsureSuccessStatusCode();
+            var json = await response.Content.ReadAsStringAsync();
+
+            Assert.Contains("Type", json);
+            Assert.Contains("Amount", json);
+            Assert.Contains("AccountNumber", json);
+        }
+
+
+        // 1. **Edge Cases**: Tests for edge cases like zero balance, negative amounts, and invalid account numbers.
+
+        // 2. **Concurrency**: Tests to simulate concurrent access to accounts, ensuring thread safety and data integrity.
+
+        // 3. **Error Handling**: Tests to verify that appropriate errors are returned for invalid operations, such as withdrawing more than the balance or transferring between non-existent accounts.
+
+        // 4. **Performance**: Tests to measure the performance of operations under load, ensuring the system can handle high transaction volumes without degradation.
+
+        // 5. **Security**: Tests to ensure that sensitive operations are protected, such as verifying that only authorized users can perform certain actions.
+        // 6. **Integration Tests**: Tests that cover the interaction between multiple components, such as ensuring that account creation and transaction logging work together correctly.
+        // 7. **Data Consistency**: Tests to ensure that the database remains consistent after operations, such as verifying that balances are correctly updated after deposits and withdrawals.
+        // 8. **Boundary Conditions**: Tests for boundary conditions, such as maximum account balance limits or transaction limits, to ensure the system behaves correctly at the edges of its operational parameters.
+        // 9. **Rollback Scenarios**: Tests to ensure that in case of an error during a transaction, the system correctly rolls back to the previous state, maintaining data integrity.
+        // 10. **Logging and Monitoring**: Tests to verify that all operations are logged correctly, and that monitoring systems can track account activity effectively.
+        // 11. **API Contract Tests**: Tests to ensure that the API adheres to its contract, including response formats, status codes, and error messages.
+        // 12. **Data Seeding**: Tests to ensure that the database can be seeded with initial data correctly, and that this data is used in tests to validate functionality.
+
+
     }
 }

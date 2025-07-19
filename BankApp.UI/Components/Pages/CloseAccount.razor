@@ -8,21 +8,14 @@
     <ValidationSummary />
 
     <div class="mb-4">
-        @* <label class="block mb-1">Account Number:</label>
-        <InputText @bind-Value="CloseRequest.accountNumber" class="border p-2 rounded w-64" /> *@
         <MudTextField @bind-Value="CloseRequest.accountNumber" Label="Account Number:" Variant="Variant.Outlined"></MudTextField>
     </div>
 
-    @* <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded">Close Account</button> *@
     <MudButton Variant="Variant.Filled" Color="Color.Error" @onclick=CloseBankAccount>Close Account</MudButton>
 </EditForm>
 
 @if (!string.IsNullOrEmpty(Message))
 {
-    @* <div class="mt-4 text-lg font-medium @(IsSuccess ? "text-green-600" : "text-red-600")">
-        @Message
-    </div> *@
-
     @if (IsSuccess)
     {
         <MudAlert Severity="Severity.Success" Variant="Variant.Text">@Message</MudAlert>

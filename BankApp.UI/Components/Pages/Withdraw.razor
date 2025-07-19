@@ -4,15 +4,6 @@
 
 <h3>Withdraw Funds</h3>
 
-@* @if (!string.IsNullOrEmpty(SuccessMessage))
-{
-    <div class="alert alert-success">@SuccessMessage</div>
-}
-@if (!string.IsNullOrEmpty(ErrorMessage))
-{
-    <div class="alert alert-danger">@ErrorMessage</div>
-} *@
-
 @if (!string.IsNullOrEmpty(SuccessMessage))
 {
     <MudAlert Severity="Severity.Success" Variant="Variant.Text">@SuccessMessage</MudAlert>
@@ -27,18 +18,13 @@
     <ValidationSummary />
 
     <div class="mb-3">
-       @*  <label>Account Number:</label>
-        <InputText class="form-control" @bind-Value="withdrawRequest.AccountNumber" /> *@
         <MudTextField @bind-Value="withdrawRequest.AccountNumber" Label="Account Number:" Variant="Variant.Outlined"></MudTextField>
     </div>
 
     <div class="mb-3">
-        @* <label>Amount:</label>
-        <InputNumber class="form-control" @bind-Value="withdrawRequest.Amount" /> *@
         <MudTextField @bind-Value="withdrawRequest.Amount" Format="F2" Label="Amount:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" AdornmentColor="Color.Warning" />
     </div>
 
-    @* <button type="submit" class="btn btn-primary">Withdraw</button> *@
     <MudButton Variant="Variant.Filled" Color="Color.Warning" @onclick=HandleWithdraw>Withdraw</MudButton>
 </EditForm>
 
