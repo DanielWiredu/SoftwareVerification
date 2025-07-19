@@ -5,12 +5,6 @@ VisualStudioVersion = 17.14.36203.30
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SoftwareVerification_API", "SoftwareVerification_API\SoftwareVerification_API.csproj", "{49DE3996-2C79-4801-A0C1-CB5A062E2FEA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppModels", "AppModels\AppModels.csproj", "{DEA83AEE-559F-16F3-A2EE-F4B72225A169}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessLogic", "BusinessLogic\BusinessLogic.csproj", "{01E30B25-F83B-04BE-47BF-65C6F329008E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccess", "DataAccess\DataAccess.csproj", "{45E8AD2D-F6CC-99C0-B6AF-489676982DA4}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OracleGeneratorTests", "OracleGeneratorTests\OracleGeneratorTests.csproj", "{1E5A5EEC-531C-4083-9E88-5FC4D8779212}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankApp.UnitTests", "BankApp.UnitTests\BankApp.UnitTests.csproj", "{8A2C5FB6-0501-4C2D-A7E7-D9FAA4C6F65D}"
@@ -27,18 +21,6 @@ Global
 		{49DE3996-2C79-4801-A0C1-CB5A062E2FEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{49DE3996-2C79-4801-A0C1-CB5A062E2FEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{49DE3996-2C79-4801-A0C1-CB5A062E2FEA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DEA83AEE-559F-16F3-A2EE-F4B72225A169}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DEA83AEE-559F-16F3-A2EE-F4B72225A169}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DEA83AEE-559F-16F3-A2EE-F4B72225A169}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DEA83AEE-559F-16F3-A2EE-F4B72225A169}.Release|Any CPU.Build.0 = Release|Any CPU
-		{01E30B25-F83B-04BE-47BF-65C6F329008E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{01E30B25-F83B-04BE-47BF-65C6F329008E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{01E30B25-F83B-04BE-47BF-65C6F329008E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{01E30B25-F83B-04BE-47BF-65C6F329008E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{45E8AD2D-F6CC-99C0-B6AF-489676982DA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{45E8AD2D-F6CC-99C0-B6AF-489676982DA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{45E8AD2D-F6CC-99C0-B6AF-489676982DA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{45E8AD2D-F6CC-99C0-B6AF-489676982DA4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1E5A5EEC-531C-4083-9E88-5FC4D8779212}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1E5A5EEC-531C-4083-9E88-5FC4D8779212}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E5A5EEC-531C-4083-9E88-5FC4D8779212}.Release|Any CPU.ActiveCfg = Release|Any CPU

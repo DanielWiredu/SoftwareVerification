@@ -1,9 +1,3 @@
-using AppModels.Account;
-using AppModels.Common;
-using BusinessLogic.Repository;
-using BusinessLogic.Repository.IRepository;
-using DataAccess.Data;
-using DataAccess.DbAccess;
 using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -17,10 +11,7 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json.Serialization;
 using Serilog;
 using SoftwareVerification_API.Data;
-using SoftwareVerification_API.Helper;
 using SoftwareVerification_API.Models;
-using SoftwareVerification_API.Service;
-using SoftwareVerification_API.Service.IService;
 using System.Text;
 
 
@@ -33,7 +24,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ENGI9839CourseProject_API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "BankApp_API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
@@ -109,8 +100,8 @@ using (var scope = app.Services.CreateScope())
     }
 
     db.Accounts.AddRange(
-        new Account { AccountNumber = "A001", Balance = 500 },
-        new Account { AccountNumber = "B002", Balance = 1000 }
+        new Account { AccountNumber = "A001", Name = "Daniel Wiredu", Balance = 500 },
+        new Account { AccountNumber = "B002", Name = "Masroor Rahman", Balance = 1000 }
     );
     db.SaveChanges();
 }
@@ -135,7 +126,7 @@ app.UseAuthentication(); //
 app.UseAuthorization();
 
 // Use Serilog request logging to capture HTTP details
-app.UseSerilogRequestLogging(); // This will automatically log HTTP request details
+//app.UseSerilogRequestLogging(); // This will automatically log HTTP request details
 
 app.MapControllers();
 

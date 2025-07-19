@@ -1,0 +1,120 @@
+﻿@page "/transactions"
+@inject HttpClient Http
+@using System.ComponentModel.DataAnnotations
+
+<h3>Transaction History</h3>
+
+<EditForm Model="@searchModel" OnValidSubmit="FetchTransactions">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <MudTextField @bind-Value="searchModel.AccountNumber" Label="Account Number:" Variant="Variant.Outlined"></MudTextField>
+    </div>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Info" @onclick=FetchTransactions>Get Transactions</MudButton>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger mt-3">@ErrorMessage</div>
+}
+@if (transactions != null && transactions.Any())
+{
+    <MudTable Items="transactions" Hover="true" SortLabel="Sort By" Elevation="0" AllowUnsorted="false">
+        <HeaderContent>
+            <MudTh>Date</MudTh>
+            <MudTh>Type</MudTh>
+            <MudTh>Amount</MudTh>
+            <MudTh>Description</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Account Number">@context.Timestamp.ToString("g")</MudTd>
+            <MudTd DataLabel="Name">@context.Type</MudTd>
+            <MudTd DataLabel="Balance">@context.Amount</MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[] { 50, 100 }" />
+        </PagerContent>
+    </MudTable>
+}
+else if (transactions != null)
+{
+    <div class="mt-3">No transactions found for this account.</div>
+}
+
+
+@* @if (transactions != null && transactions.Any())
+{
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var txn in transactions)
+            {
+                <tr>
+                    <td>@txn.Timestamp.ToString("g")</td>
+                    <td>@txn.Type</td>
+                    <td>@txn.Amount</td>
+                    <td>@txn.Description</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else if (transactions != null)
+{
+    <div class="mt-3">No transactions found for this account.</div>
+} *@
+
+@code {
+    private SearchModel searchModel = new();
+    private List<TransactionDto> transactions;
+    private string ErrorMessage;
+
+    public class SearchModel
+    {
+        [Required]
+        public string AccountNumber { get; set; }
+    }
+
+    public class TransactionDto
+    {
+        public DateTime Timestamp { get; set; }
+        public string Type { get; set; }      // "Deposit", "Withdraw", "Transfer"
+        public double Amount { get; set; }
+        public string Description { get; set; }
+    }
+
+    private async Task FetchTransactions()
+    {
+        ErrorMessage = string.Empty;
+        transactions = null;
+
+        try
+        {
+            var response = await Http.GetAsync($"/api/accounts/transactions/{searchModel.AccountNumber}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                transactions = await response.Content.ReadFromJsonAsync<List<TransactionDto>>();
+            }
+            else
+            {
+                ErrorMessage = "Failed to fetch transactions.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Unexpected error: {ex.Message}";
+        }
+    }
+}
+

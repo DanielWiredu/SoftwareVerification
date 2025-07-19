@@ -3,33 +3,40 @@
 
 <h3 class="text-xl font-semibold mb-4">Open New Account</h3>
 
-<EditForm Model="NewAccount" OnValidSubmit="OpenNewAccount">
+<EditForm Model="NewAccount">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
     <div class="mb-4">
-        <label class="block mb-1">Account Number:</label>
-        <InputText @bind-Value="NewAccount.AccountNumber" class="border p-2 rounded w-64" />
+        <MudTextField @bind-Value="NewAccount.AccountNumber" Label="Account Number:" Variant="Variant.Outlined"></MudTextField>
     </div>
 
     <div class="mb-4">
-        <label class="block mb-1">Owner Name:</label>
-        <InputText @bind-Value="NewAccount.OwnerName" class="border p-2 rounded w-64" />
+        <MudTextField @bind-Value="NewAccount.Name" Label="Name:" Variant="Variant.Outlined"></MudTextField>
     </div>
 
     <div class="mb-4">
-        <label class="block mb-1">Initial Balance:</label>
-        <InputNumber @bind-Value="NewAccount.InitialBalance" class="border p-2 rounded w-64" />
+        <MudTextField @bind-Value="NewAccount.Balance" Format="F2" Label="Initial Balance:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" AdornmentColor="Color.Warning" />
     </div>
 
-    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Open Account</button>
+    @* <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Open Account</button> *@
+    <MudButton Variant="Variant.Filled" Color="Color.Success" @onclick=OpenNewAccount>Create Account</MudButton>
 </EditForm>
 
 @if (!string.IsNullOrEmpty(Message))
 {
-    <div class="mt-4 text-lg font-medium @(IsSuccess ? "text-green-600" : "text-red-600")">
+  @*   <div class="mt-4 text-lg font-medium @(IsSuccess ? "text-green-600" : "text-red-600")">
         @Message
-    </div>
+    </div> *@
+
+    @if (IsSuccess)
+    {
+        <MudAlert Severity="Severity.Success" Variant="Variant.Text">@Message</MudAlert>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Text">@Message</MudAlert>
+    }
 }
 
 @code {
@@ -67,7 +74,7 @@
     public class AccountRequest
     {
         public string AccountNumber { get; set; }
-        public string OwnerName { get; set; }
-        public double InitialBalance { get; set; }
+        public string Name { get; set; }
+        public double Balance { get; set; }
     }
 }

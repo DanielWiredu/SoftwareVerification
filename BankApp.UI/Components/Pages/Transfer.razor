@@ -4,35 +4,47 @@
 
 <h3>Transfer Funds</h3>
 
-@if (!string.IsNullOrEmpty(SuccessMessage))
+@* @if (!string.IsNullOrEmpty(SuccessMessage))
 {
     <div class="alert alert-success">@SuccessMessage</div>
 }
 @if (!string.IsNullOrEmpty(ErrorMessage))
 {
     <div class="alert alert-danger">@ErrorMessage</div>
+} *@
+@if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <MudAlert Severity="Severity.Success" Variant="Variant.Text">@SuccessMessage</MudAlert>
+}
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <MudAlert Severity="Severity.Error" Variant="Variant.Text">@ErrorMessage</MudAlert>
 }
 
-<EditForm Model="transferRequest" OnValidSubmit="HandleTransfer">
+<EditForm Model="transferRequest" >
     <DataAnnotationsValidator />
     <ValidationSummary />
 
     <div class="mb-3">
-        <label>From Account:</label>
-        <InputText class="form-control" @bind-Value="transferRequest.FromAccount" />
+        @* <label>From Account:</label>
+        <InputText class="form-control" @bind-Value="transferRequest.FromAccount" /> *@
+        <MudTextField @bind-Value="transferRequest.FromAccount" Label="From Account:" Variant="Variant.Outlined"></MudTextField>
     </div>
 
     <div class="mb-3">
-        <label>To Account:</label>
-        <InputText class="form-control" @bind-Value="transferRequest.ToAccount" />
+        @* <label>To Account:</label>
+        <InputText class="form-control" @bind-Value="transferRequest.ToAccount" /> *@
+        <MudTextField @bind-Value="transferRequest.ToAccount" Label="To Account:" Variant="Variant.Outlined"></MudTextField>
     </div>
 
     <div class="mb-3">
-        <label>Amount:</label>
-        <InputNumber class="form-control" @bind-Value="transferRequest.Amount" />
+       @*  <label>Amount:</label>
+        <InputNumber class="form-control" @bind-Value="transferRequest.Amount" /> *@
+        <MudTextField @bind-Value="transferRequest.Amount" Format="F2" Label="Amount:" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" AdornmentColor="Color.Warning" />
     </div>
 
-    <button type="submit" class="btn btn-primary">Transfer</button>
+    @* <button type="submit" class="btn btn-primary">Transfer</button> *@
+    <MudButton Variant="Variant.Filled" Color="Color.Success" @onclick=HandleTransfer>Transfer</MudButton>
 </EditForm>
 
 @code {

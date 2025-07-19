@@ -4,18 +4,19 @@
 <h3 class="text-xl font-semibold mb-4">Check Account Balance</h3>
 
 <div class="mb-4">
-    <input @bind="AccountNumber" placeholder="Enter Account Number"
-           class="border p-2 rounded w-64" />
-    <button @onclick="CheckAccountBalance" class="ml-2 bg-blue-500 text-white px-4 py-2 rounded">Check</button>
+    <MudTextField @bind-Value="AccountNumber" Label="Enter Account Number" Variant="Variant.Outlined"></MudTextField>
+
+    <MudButton @onclick="CheckAccountBalance" Variant="Variant.Filled" Color="Color.Primary">Check</MudButton>
 </div>
 
 @if (ErrorMessage != null)
 {
-    <div class="text-red-500">@ErrorMessage</div>
+    <MudAlert Severity="Severity.Error" Variant="Variant.Filled">@ErrorMessage</MudAlert>
+
 }
 else if (Balance != null)
 {
-    <div class="text-green-600 text-lg font-medium">Balance: $@Balance</div>
+    <MudAlert Severity="Severity.Success" Variant="Variant.Filled">Balance: $@Balance</MudAlert>
 }
 
 @code {

@@ -3,23 +3,34 @@
 
 <h3 class="text-xl font-semibold mb-4">Close Account</h3>
 
-<EditForm Model="CloseRequest" OnValidSubmit="CloseBankAccount">
+<EditForm Model="CloseRequest">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
     <div class="mb-4">
-        <label class="block mb-1">Account Number:</label>
-        <InputText @bind-Value="CloseRequest.AccountNumber" class="border p-2 rounded w-64" />
+        @* <label class="block mb-1">Account Number:</label>
+        <InputText @bind-Value="CloseRequest.accountNumber" class="border p-2 rounded w-64" /> *@
+        <MudTextField @bind-Value="CloseRequest.accountNumber" Label="Account Number:" Variant="Variant.Outlined"></MudTextField>
     </div>
 
-    <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded">Close Account</button>
+    @* <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded">Close Account</button> *@
+    <MudButton Variant="Variant.Filled" Color="Color.Error" @onclick=CloseBankAccount>Close Account</MudButton>
 </EditForm>
 
 @if (!string.IsNullOrEmpty(Message))
 {
-    <div class="mt-4 text-lg font-medium @(IsSuccess ? "text-green-600" : "text-red-600")">
+    @* <div class="mt-4 text-lg font-medium @(IsSuccess ? "text-green-600" : "text-red-600")">
         @Message
-    </div>
+    </div> *@
+
+    @if (IsSuccess)
+    {
+        <MudAlert Severity="Severity.Success" Variant="Variant.Text">@Message</MudAlert>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Text">@Message</MudAlert>
+    }
 }
 
 @code {
@@ -33,7 +44,7 @@
 
         try
         {
-            var response = await Http.PostAsJsonAsync("/api/accounts/close", CloseRequest);
+            var response = await Http.PostAsync($"/api/accounts/close?accountNumber={CloseRequest.accountNumber}", null);
 
             if (response.IsSuccessStatusCode)
             {
@@ -56,6 +67,6 @@
 
     public class CloseAccountRequest
     {
-        public string AccountNumber { get; set; }
+        public string accountNumber { get; set; }
     }
 }
