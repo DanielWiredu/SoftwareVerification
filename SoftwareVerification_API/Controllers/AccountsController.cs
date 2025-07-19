@@ -41,6 +41,10 @@ namespace SoftwareVerification_API.Controllers
                 if (newAccount.Balance < 0)
                     return BadRequest("Initial Balance must be greater than zero.");
 
+                var account = await _db.Accounts.FirstOrDefaultAsync(a => a.AccountNumber == newAccount.AccountNumber);
+                if (account != null)
+                    return Conflict("Account with this number already exists.");
+
                 // Generate AccountNumber
                 var totalAccounts = await _db.Accounts.CountAsync();
                 var nextId = totalAccounts + 1;
@@ -151,7 +155,8 @@ namespace SoftwareVerification_API.Controllers
 
             return Ok(new
             {
-                Message = $"Successfully deposited {request.Amount:C} to {account.AccountNumber}.",
+                //Message = $"Successfully deposited {request.Amount:C} to {account.AccountNumber}.",
+                Message = $"Deposit successful",
                 NewBalance = updated.Balance
             });
         }
@@ -190,7 +195,8 @@ namespace SoftwareVerification_API.Controllers
 
             return Ok(new
             {
-                Message = $"Successfully withdrew {request.Amount:C} from {account.AccountNumber}.",
+                //Message = $"Successfully withdrew {request.Amount:C} from {account.AccountNumber}.",
+                Message = $"Withdrawal successful",
                 NewBalance = account.Balance
             });
         }

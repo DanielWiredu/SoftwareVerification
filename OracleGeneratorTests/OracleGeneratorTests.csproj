@@ -27,10 +27,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Specs\transfer_funds.yaml">
+    <Content Include="Specs\open_account.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Specs\register_user.yaml">
+    <Content Include="Specs\deposit.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Specs\get_balance.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Specs\withdraw.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Specs\transfer_funds.yaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -1,0 +1,23 @@
+endpoint: /api/accounts/balance/{accountNumber}
+method: GET
+description: Fetches the current balance of an account.
+
+inputs:
+  - name: accountNumber
+    type: string
+    required: true
+
+preconditions:
+  - condition: accountNumber != ""
+    message: "Account number must not be empty."
+
+postconditions:
+  - condition: "balance field is present"
+    message: "Balance should be returned in the response."
+
+expected_output:
+  status_code: 200
+  message: ""
+  data_keys: [AccountNumber, Balance]
+
+

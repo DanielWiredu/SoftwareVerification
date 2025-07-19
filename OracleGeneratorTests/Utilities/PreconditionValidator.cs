@@ -29,15 +29,15 @@ namespace OracleGeneratorTests.Utilities
             {
                 var parts = expression.Split(">=");
                 var key = parts[0].Trim();
-                var val = int.Parse(parts[1].Trim());
-                return Convert.ToInt32(input[key]) >= val;
+                var val = decimal.Parse(parts[1].Trim());
+                return Convert.ToDecimal(input[key]) >= val;
             }
             else if (expression.Contains(">"))
             {
                 var parts = expression.Split(">");
                 var key = parts[0].Trim();
-                var val = int.Parse(parts[1].Trim());
-                return Convert.ToInt32(input[key]) > val;
+                var val = decimal.Parse(parts[1].Trim());
+                return Convert.ToDecimal(input[key]) > val;
             }
             else if (expression.Contains("<"))
             {

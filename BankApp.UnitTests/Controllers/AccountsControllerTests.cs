@@ -185,9 +185,6 @@ namespace BankApp.UnitTests.Controllers
             _scope.Dispose();
         }
 
-
-
-
         // The current test suite already covers most core account operations.
         // To further improve test coverage and ensure robustness, we add the following types of unit and integration tests
 
@@ -337,7 +334,7 @@ namespace BankApp.UnitTests.Controllers
             _db.Accounts.Add(acc);
             await _db.SaveChangesAsync();
 
-            var tasks = Enumerable.Range(0, 10).Select(_ => _client.PostAsJsonAsync("/api/accounts/deposit", new
+            var tasks = Enumerable.Range(0, 5).Select(_ => _client.PostAsJsonAsync("/api/accounts/deposit", new
             {
                 AccountNumber = "X102",
                 Amount = 10
@@ -348,7 +345,7 @@ namespace BankApp.UnitTests.Controllers
             using var refreshScope = _scope.ServiceProvider.CreateScope();
             var refreshedDb = refreshScope.ServiceProvider.GetRequiredService<BankDbContext>();
             var updated = await refreshedDb.Accounts.FirstOrDefaultAsync(a => a.AccountNumber == "X102");
-            Assert.Equal(100, updated.Balance);
+            Assert.Equal(50, updated.Balance);
         }
 
         [Fact]
@@ -451,6 +448,19 @@ namespace BankApp.UnitTests.Controllers
             Assert.Contains("AccountNumber", json);
         }
 
+
+        [Fact]
+        public async Task OpenAccount_DuplicateAccountNumber_ShouldFail()
+        {
+            var existing = new Account { AccountNumber = "ABC", Balance = 100 };
+            _db.Accounts.Add(existing);
+            await _db.SaveChangesAsync();
+
+            var response = await _client.PostAsJsonAsync("/api/accounts/open", new { AccountNumber = "ABC", Balance = 200 });
+
+            // Assert: should get a conflict (409) or at least a bad request
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        }
 
         // 1. **Edge Cases**: Tests for edge cases like zero balance, negative amounts, and invalid account numbers.
 

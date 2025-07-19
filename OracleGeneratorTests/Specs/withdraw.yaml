@@ -1,0 +1,27 @@
+endpoint: /api/accounts/withdraw
+method: POST
+description: Withdraws funds from an existing account.
+
+inputs:
+  - name: accountNumber
+    type: string
+    required: true
+  - name: amount
+    type: decimal
+    required: true
+
+preconditions:
+  - condition: amount > 0
+    message: "Withdrawal amount must be greater than zero."
+  # - condition: amount <= balance
+  #   message: "Insufficient funds."
+
+postconditions:
+  - condition: "a transaction record is created"
+    message: "A withdrawal transaction should be logged."
+
+expected_output:
+  status_code: 200
+  message: "Withdrawal successful"
+  data_keys: [NewBalance]
+

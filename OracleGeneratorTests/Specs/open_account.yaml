@@ -1,0 +1,30 @@
+endpoint: /api/accounts/open
+method: POST
+description: Opens a new account with an optional account number and an initial balance.
+
+inputs:
+  - name: accountnumber
+    type: string
+    required: true
+  - name: name
+    type: string
+    required: true
+  - name: balance
+    type: decimal
+    required: true
+
+preconditions:
+  - condition: balance >= 0
+    message: "Initial balance must be zero or greater."
+
+postconditions:
+  - condition: "account is created with correct holder name and balance"
+    message: "Account details should match input."
+  - condition: "account number is generated if not provided"
+    message: "Account number should be generated if not supplied."
+
+expected_output:
+  status_code: 201
+  message: ""
+  data_keys: [AccountNumber, Name, Balance, CreatedAt]
+

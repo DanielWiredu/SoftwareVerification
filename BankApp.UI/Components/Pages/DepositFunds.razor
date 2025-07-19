@@ -45,7 +45,8 @@
 
             if (response.IsSuccessStatusCode)
             {
-                Message = "Deposit successful.";
+                // Message = "Deposit successful.";
+                Message = $"Successfully deposited {request.Amount:C} to {request.AccountNumber}.";
                 IsSuccess = true;
                 request = new(); // reset form
             }

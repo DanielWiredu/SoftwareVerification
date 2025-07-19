@@ -54,8 +54,8 @@
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadFromJsonAsync<WithdrawResponse>();
-                // SuccessMessage = $"Successfully withdrew {result.Amount:C} from account {result.AccountNumber}.";
-                SuccessMessage = $"{result.Message}";
+                SuccessMessage = $"Successfully withdrew {withdrawRequest.Amount:C} from account {withdrawRequest.AccountNumber}.";
+                // SuccessMessage = $"{result.Message}";
             }
             else
             {

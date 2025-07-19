@@ -1,0 +1,26 @@
+endpoint: /api/accounts/deposit
+method: POST
+description: Deposits a specified amount into an account.
+
+inputs:
+  - name: accountNumber
+    type: string
+    required: true
+  - name: amount
+    type: decimal
+    required: true
+
+preconditions:
+  - condition: amount > 0
+    message: "Deposit amount must be greater than zero."
+
+postconditions:
+  - condition: "account balance increases by amount"
+    message: "Balance should be updated accordingly."
+  - condition: "a deposit transaction is logged"
+    message: "A deposit transaction should be created."
+
+expected_output:
+  status_code: 200
+  message: "Deposit successful"
+  data_keys: [NewBalance]

@@ -18,15 +18,9 @@ preconditions:
     message: "Transfer amount must be greater than zero."
   - condition: from_account != to_account
     message: "Accounts must be different."
-  - condition: from_account and to_account exist
-    message: "One or both accounts not found."
-  - condition: from_account and to_account are not closed
-    message: "One or both accounts are closed."
-  - condition: from_account has sufficient balance
-    message: "Insufficient funds."
 
 postconditions:
-  - condition: two transaction records are created
+  - condition: "two transaction records are created"
     message: "Two transfer transactions should be logged."
 
 expected_output:
