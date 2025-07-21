@@ -138,7 +138,6 @@ namespace OracleGeneratorTests.Tests
         {
             var spec = SpecLoader.LoadFromYaml(specPath);
 
-            // Generate sample input based on spec inputs (manual logic for now)
             var input = new Dictionary<string, object>();
 
             input = new Dictionary<string, object>

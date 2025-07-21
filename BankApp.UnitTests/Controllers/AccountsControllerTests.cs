@@ -462,22 +462,22 @@ namespace BankApp.UnitTests.Controllers
             Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         }
 
-        // 1. **Edge Cases**: Tests for edge cases like zero balance, negative amounts, and invalid account numbers.
+         //1. **Edge Cases**: Tests for edge cases like zero balance, negative amounts, and invalid account numbers.
 
-        // 2. **Concurrency**: Tests to simulate concurrent access to accounts, ensuring thread safety and data integrity.
+         //2. **Concurrency**: Tests to simulate concurrent access to accounts, ensuring thread safety and data integrity.
 
-        // 3. **Error Handling**: Tests to verify that appropriate errors are returned for invalid operations, such as withdrawing more than the balance or transferring between non-existent accounts.
+         //3. **Error Handling**: Tests to verify that appropriate errors are returned for invalid operations, such as withdrawing more than the balance or transferring between non-existent accounts.
 
-        // 4. **Performance**: Tests to measure the performance of operations under load, ensuring the system can handle high transaction volumes without degradation.
+         //4. **Performance**: Tests to measure the performance of operations under load, ensuring the system can handle high transaction volumes without degradation.
 
-        // 5. **Security**: Tests to ensure that sensitive operations are protected, such as verifying that only authorized users can perform certain actions.
-        // 6. **Integration Tests**: Tests that cover the interaction between multiple components, such as ensuring that account creation and transaction logging work together correctly.
-        // 7. **Data Consistency**: Tests to ensure that the database remains consistent after operations, such as verifying that balances are correctly updated after deposits and withdrawals.
-        // 8. **Boundary Conditions**: Tests for boundary conditions, such as maximum account balance limits or transaction limits, to ensure the system behaves correctly at the edges of its operational parameters.
-        // 9. **Rollback Scenarios**: Tests to ensure that in case of an error during a transaction, the system correctly rolls back to the previous state, maintaining data integrity.
-        // 10. **Logging and Monitoring**: Tests to verify that all operations are logged correctly, and that monitoring systems can track account activity effectively.
-        // 11. **API Contract Tests**: Tests to ensure that the API adheres to its contract, including response formats, status codes, and error messages.
-        // 12. **Data Seeding**: Tests to ensure that the database can be seeded with initial data correctly, and that this data is used in tests to validate functionality.
+         //5. **Security**: Tests to ensure that sensitive operations are protected, such as verifying that only authorized users can perform certain actions.
+         //6. **Integration Tests**: Tests that cover the interaction between multiple components, such as ensuring that account creation and transaction logging work together correctly.
+         //7. **Data Consistency**: Tests to ensure that the database remains consistent after operations, such as verifying that balances are correctly updated after deposits and withdrawals.
+         //8. **Boundary Conditions**: Tests for boundary conditions, such as maximum account balance limits or transaction limits, to ensure the system behaves correctly at the edges of its operational parameters.
+         //9. **Rollback Scenarios**: Tests to ensure that in case of an error during a transaction, the system correctly rolls back to the previous state, maintaining data integrity.
+         //10. **Logging and Monitoring**: Tests to verify that all operations are logged correctly, and that monitoring systems can track account activity effectively.
+         //11. **API Contract Tests**: Tests to ensure that the API adheres to its contract, including response formats, status codes, and error messages.
+         //12. **Data Seeding**: Tests to ensure that the database can be seeded with initial data correctly, and that this data is used in tests to validate functionality.
 
 
     }
